@@ -1,0 +1,9 @@
+# Python dependencies
+/venv
+
+# Build
+*egg*
+
+# Pycharm
+*.xml
+.idea/
