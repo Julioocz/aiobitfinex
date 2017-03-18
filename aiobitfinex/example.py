@@ -1,6 +1,6 @@
 import asyncio
 
-from bitfinex_aio import RESTClient
+from aiobitfinex import RESTClient
 
 async def main(loop):
     bitfinex = RESTClient(loop)
