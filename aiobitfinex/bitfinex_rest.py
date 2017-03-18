@@ -38,6 +38,49 @@ class APIPath:
     ORDER_BOOK = API_ROOT.format('orderbook/{}')
     LENDS = API_ROOT.format('lends/{}')
 
+    # -- Authenticated endpoints. http://docs.bitfinex.com/v1/reference#rest-auth-account-info
+    ACCOUNT_INFO = API_ROOT.format('account_infos')
+    SUMMARY = API_ROOT.format('summary')
+    DEPOSIT = API_ROOT.format('deposit/new')
+    KEY_PERMISSIONS = API_ROOT.format('key_info')
+    MARGIN_INFO = API_ROOT.format('margin_infos')
+    BALANCES = API_ROOT.format('balances')
+    TRANSFER = API_ROOT.format('transfer')
+    WITHDRAWAL = API_ROOT.format('withdraw')
+
+    # - Orders. http://docs.bitfinex.com/v1/reference#rest-auth-orders
+    ACTIVE_ORDERS = API_ROOT.format('orders')
+    ORDER_ROOT = API_ROOT.format('order/{}')
+    NEW_ORDER = ORDER_ROOT.format('new')
+    NEW_ORDER_MULTI = ORDER_ROOT.format('new/multi')
+    CANCEL_ORDER = ORDER_ROOT.format('cancel')
+    CANCEL_ORDER_MULTI = ORDER_ROOT.format('cancel/multi')
+    CANCEL_ORDER_ALL = ORDER_ROOT.format('cancel/all')
+    REPLACE_ORDER = ORDER_ROOT.format('replace')
+    STATUS_ORDER = ORDER_ROOT.format('status')
+
+    # - Positions. http://docs.bitfinex.com/v1/reference#rest-auth-positions
+    ACTIVE_POSITIONS = API_ROOT.format('positions')
+    CLAIM_POSITION = API_ROOT.format('position/claim')
+
+    # - Historical data. http://docs.bitfinex.com/v1/reference#rest-auth-historical-data
+    HISTORY = API_ROOT.format('history')
+    MOVEMENTS = API_ROOT.format('history/movements')
+    PAST_TRADES = API_ROOT.format('mytrades')
+
+    # - Marging Funding. http://docs.bitfinex.com/v1/reference#rest-auth-margin-funding
+    OFFERS = API_ROOT.format('offers')
+    OFFER_ROOT = API_ROOT.format('offer/{}')
+    NEW_OFFER = OFFER_ROOT.format('new')
+    CANCEL_OFFER = OFFER_ROOT.format('cancel')
+    STATUS_OFFER = OFFER_ROOT.format('status')
+
+    ACTIVE_CREDITS = API_ROOT.format('credits')
+    TAKEN_FUNDS = API_ROOT.format('taken_funds')
+    UNUSED_TAKEN_FUNDS = API_ROOT.format('unused_taken_funds')
+    TOTAL_TAKEN_FUNDS = API_ROOT.format('total_taken_funds')
+    CLOSE_FUNDING = API_ROOT.format('funding/close')
+
 
 class RESTClient:
     """
