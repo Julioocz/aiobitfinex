@@ -111,14 +111,17 @@ class RESTClient:
         if not self._session.closed:
             self._session.close()
 
-    def _prepare_post(self, payload: dict) -> Tuple[any, dict]:
+    def _prepare_post(self, url: str, payload: dict) -> Tuple[any, dict]:
         """
         Adds the nonce to the payload. Encodes it with base64. Makes a signature with it
         and the api key secret. Returning the auth headers that should be used in the request
 
         :payload: the payload that's going to be send to the private endpoint
+        :url: api url to be used to get the api enpoint required on the payload dict
         :return: the headers auth headers that should be send with the request
         """
+        # Adding the url endpoint to the request. Striping https://api.bitfinex.com
+        payload['request'] = '/{}'.format('/'.join(url.split('/')[3:]))
 
         # Adding nonce to the payload
         payload['nonce'] = str(time.time())
@@ -136,7 +139,7 @@ class RESTClient:
         }
         return payload_b64, headers
 
-    async def _post(self, url, payload=None) -> dict:
+    async def _post(self, url, payload=None) -> any:
         """
         Performs a POST request, checking if the user is authenticated to create the auth
         headers. If the user is not authenticated it raises an error.
@@ -152,8 +155,7 @@ class RESTClient:
             raise NoAPIKeys('The private endpoints require the api keys')
 
         payload = payload or {}
-        payload['request'] = '/v1/account_infos'
-        payload_encoded, headers = self._prepare_post(payload)
+        payload_encoded, headers = self._prepare_post(url, payload)
 
         logger.debug(f'Sending post request to {url}')
         with async_timeout.timeout(20):
@@ -175,10 +177,11 @@ class RESTClient:
         """
         logger.debug(f'Fetching {url}')
         with async_timeout.timeout(15):
-            async with self._session.get(url) as response:
-                if 200 <= response.status < 300:
-                    return await response.json()
+            async with self._session.get(url) as resp:
+                if 200 <= resp.status < 300:
+                    return await resp.json()
                 else:
+                    print(resp.text())
                     raise aiohttp.errors.HttpProcessingError(
                         message=f'There was a problem processing {url}', code=response.status)
 
@@ -251,3 +254,80 @@ class RESTClient:
     async def symbols_details(self) -> List[dict]:
         """Gets a detailed list with the available symbols on the exchange"""
         return await self._fetch(APIPath.SYMBOLS)
+
+    # Authenticated methods
+    async def account_info(self) -> List[dict]:
+        """
+        Returns information about the trading fees of the authenticated account
+        API URL: http://docs.bitfinex.com/v1/reference#rest-auth-account-info
+
+        :return: A list with the trading fees from the currency pairs
+        """
+        return await self._post(APIPath.ACCOUNT_INFO)
+
+    async def summary(self) -> dict:
+        """
+        Returns a 30-day summary of your trading volume and return on marging funding
+        API URL: http://docs.bitfinex.com/v1/reference#rest-auth-summary
+
+        :return: a dict with the summary
+        """
+        return await self._post(APIPath.SUMMARY)
+
+    async def deposit(self, method, wallet_name, renew: Optional[bool] = False) -> str:
+        """
+        Returns your deposited address to make a new deposit
+        API URL: http://docs.bitfinex.com/v1/reference#rest-auth-deposit
+
+        :param method: method of deposit. (bitcoin, litecoin, ethereum, mastercoin,
+         ethereumc, zcash, monero)
+        :param wallet_name: wallet to deposit int (trading, exchange, deposit). Your
+        wallet nerds to already exist
+        :param renew: Default is False. If set to True, will return a new unused deposit address
+        :return: the address to be used on the deposit
+        """
+        payload = {
+            'method': method,
+            'wallet_name': wallet_name,
+            'renew': 1 if renew else 0
+        }
+        resp = await self._post(APIPath.DEPOSIT, payload)
+        return resp['address']
+
+    async def key_info(self) -> dict:
+        """Returns the permissions of the api key that were used on the constructor"""
+        return await self._post(APIPath.KEY_PERMISSIONS)
+
+    async def margin_info(self):
+        """
+        Returns your trading wallet information for margin trading
+        API URL: http://docs.bitfinex.com/v1/reference#rest-auth-margin-information
+        """
+        return await self._post(APIPath.MARGIN_INFO)
+
+    async def balances(self):
+        """
+        Returns the balances of your wallets
+        API URL: http://docs.bitfinex.com/v1/reference#rest-auth-wallet-balances
+        """
+        return await self._post(APIPath.BALANCES)
+
+    async def transfer(self, amount, currency, wallet_from, wallet_to):
+        """
+        Allows you to move your available blanaces between wallets
+        API URL: http://docs.bitfinex.com/v1/reference#reast-auth-transfer-between-wallets
+
+        :amount: amount to be transfered on the given currency
+        :currency: currency of funds to transfer
+        :return: a dict with the status (success or error) and a status message
+        """
+        payload = {
+            'amount': amount,
+            'currency': currency,
+            'walletfrom': wallet_from,
+            'walletto': wallet_to
+        }
+        return await self._post(APIPath.TRANSFER, payload)
+
+
+
