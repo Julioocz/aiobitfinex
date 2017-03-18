@@ -312,7 +312,7 @@ class RESTClient:
         """
         return await self._post(APIPath.BALANCES)
 
-    async def transfer(self, amount, currency, wallet_from, wallet_to):
+    async def transfer(self, amount: float, currency: str, wallet_from: str, wallet_to: str):
         """
         Allows you to move your available blanaces between wallets
         API URL: http://docs.bitfinex.com/v1/reference#reast-auth-transfer-between-wallets
@@ -327,7 +327,56 @@ class RESTClient:
             'walletfrom': wallet_from,
             'walletto': wallet_to
         }
-        return await self._post(APIPath.TRANSFER, payload)
+        return (await self._post(APIPath.TRANSFER, payload))[0]
 
+    async def withdraw(self,
+                       withdrawal_type: str,
+                       wallet_elected: str,
+                       amount: float,
+                       address: str,
+                       account_number: str,
+                       bank_name: str,
+                       bank_address: str,
+                       bank_city: str,
+                       bank_country: str,
+                       swift: str=None,
+                       detail_payment: str=None,
+                       expressWire: bool=0,  # noqa
+                       payment_id: str=None,
+                       account_name: str=None,
+                       intermediary_bank_name: str=None,
+                       intermediary_bank_address: str=None,
+                       intermediary_bank_city: str=None,
+                       intermediary_bank_country: str=None,
+                       intermediary_bank_account: str=None,
+                       intermediary_bank_swift: str=None) -> dict:
+        """
+        Allow you to request a withdrawal from one of your wallet.
+        API URL: http://docs.bitfinex.com/v1/reference#rest-auth-withdrawal
+        Check the api docs for more info about the params
 
+        :param withdrawal_type:
+        :param wallet_elected:
+        :param amount:
+        :param address:
+        :param account_number:
+        :param bank_name:
+        :param bank_address:
+        :param bank_city:
+        :param bank_country:
+        :param swift:
+        :param detail_payment:
+        :param expressWire:
+        :param payment_id:
+        :param account_name:
+        :param intermediary_bank_name:
+        :param intermediary_bank_address:
+        :param intermediary_bank_city:
+        :param intermediary_bank_country:
+        :param intermediary_bank_account:
+        :param intermediary_bank_swift:
+        :return: a dict with the status, message and withdrawal_id
+        """
 
+        payload = {key: value for key, value in locals().items() if value}
+        return (await self._post(APIPath.WITHDRAWAL, payload))[0]
